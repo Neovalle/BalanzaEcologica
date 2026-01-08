@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balanza Ecológica: IA vs. Consumo Global</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F5F5F0; /* Base neutra cálida */
+            color: #2D3748;
+        }
+
+        h1, h2, h3, .serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Estilo del Contenedor de Gráficos - OBLIGATORIO */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 500px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        .section-card {
+            background-color: #FFFFFF;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .section-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-link {
+            cursor: pointer;
+            padding-bottom: 2px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            border-bottom-color: #4A5568;
+            color: #1A202C;
+        }
+
+        /* --- ESTILOS DE SLIDER --- */
+        input[type=range] {
+            -webkit-appearance: none; 
+            width: 100%; 
+            background: transparent; 
+        }
+        input[type=range]:focus { outline: none; }
+
+        /* Webkit (Chrome, Safari, Edge) Track */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #4A5568;
+            border-radius: 4px;
+        }
+        /* Webkit Thumb */
+        input[type=range]::-webkit-slider-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid #2D3748;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        }
+
+        /* Firefox Track */
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #4A5568;
+            border-radius: 4px;
+        }
+        /* Firefox Thumb */
+        input[type=range]::-moz-range-thumb {
+            height: 20px;
+            width: 20px;
+            border: 2px solid #2D3748;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        }
+
+        /* Botón Toggle Activo */
+        .toggle-btn.active {
+            background-color: #38A169;
+            color: white;
+            border-color: #38A169;
+        }
+        .toggle-btn.water-active {
+            background-color: #3182CE;
+            color: white;
+            border-color: #3182CE;
+        }
+        
+        /* Estilos Tabla Metodología */
+        .method-table th {
+            text-align: left;
+            padding: 12px;
+            background-color: #EDF2F7;
+            border-bottom: 2px solid #CBD5E0;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #4A5568;
+        }
+        .method-table td {
+            padding: 12px;
+            border-bottom: 1px solid #E2E8F0;
+            font-size: 0.9rem;
+            vertical-align: top;
+        }
+        .method-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Scrollbar Personalizado */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #F5F5F0; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E0; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #A0AEC0; }
+    </style>
+</head>
+<body class="antialiased selection:bg-gray-200">
+
+    <!-- Navegación -->
+    <nav class="sticky top-0 z-50 bg-[#F5F5F0]/90 backdrop-blur-md border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center cursor-pointer" onclick="navigateTo('intro-section')">
+                    <span class="serif text-xl font-bold text-gray-800">La Balanza Ecológica</span>
+                </div>
+                <div class="hidden sm:flex space-x-6 lg:space-x-8">
+                    <span onclick="navigateTo('ai-section')" class="nav-link text-gray-600 text-sm font-medium">Impacto IA</span>
+                    <span onclick="navigateTo('social-section')" class="nav-link text-gray-600 text-sm font-medium">Digital</span>
+                    <span onclick="navigateTo('calculator-section')" class="nav-link text-gray-600 text-sm font-medium text-emerald-700 font-bold">Calculadora</span>
+                    <span onclick="navigateTo('methodology-section')" class="nav-link text-gray-500 text-sm font-medium border border-gray-300 rounded px-2 py-1 hover:bg-gray-100 hover:border-gray-400">Metodología y Datos</span>
+                </div>
+                <!-- Botón Menú Móvil -->
+                <div class="sm:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-gray-600 hover:text-gray-900 focus:outline-none">
+                        Menú
+                    </button>
+                </div>
+            </div>
+            <!-- Menú Móvil -->
+            <div id="mobile-menu" class="hidden sm:hidden pb-4 bg-white border-b shadow-lg absolute w-full left-0 px-4">
+                <div class="flex flex-col space-y-3 py-4">
+                    <span onclick="navigateTo('ai-section')" class="block px-2 py-1 text-base font-medium text-gray-700">Impacto IA</span>
+                    <span onclick="navigateTo('social-section')" class="block px-2 py-1 text-base font-medium text-gray-700">Digital</span>
+                    <span onclick="navigateTo('calculator-section')" class="block px-2 py-1 text-base font-medium text-emerald-700 font-bold">Calculadora</span>
+                    <span onclick="navigateTo('methodology-section')" class="block px-2 py-1 text-base font-medium text-gray-500">Metodología</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        <!-- Cabecera / Intro -->
+        <div id="intro-section" class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Contextualizando el Consumo</h1>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600 leading-relaxed">
+                Un análisis comparativo de la huella ambiental de la Inteligencia Artificial frente a otros costos menos visibles, como por ejemplo el de las redes sociales o de los impactos tangibles de algunas actividades de entretenimiento.
+            </p>
+        </div>
+
+        <!-- Sección 1: IA (La Base) -->
+        <section id="ai-section" class="mb-20 scroll-mt-20">
+            <div class="section-card p-8 border-l-4 border-slate-600">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="md:w-1/2">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">La Base de la IA: Entrenamiento vs. Entretenimiento</h2>
+                        <p class="text-gray-600 mb-4 leading-relaxed">
+                            Para entender el impacto de la IA, debemos observar el evento masivo y singular del <strong>Entrenamiento</strong>, que puede llevar varios meses de consumo de energía continuo. Entrenar GPT-3 totalizó aproximadamente <strong>552 toneladas de CO₂e</strong> (Patterson et al., 2021).
+                        </p>
+                        <p class="text-gray-600 mb-4 leading-relaxed">
+                            Para evaluar la equidad, comparamos esto con actividades de ocio sostenidas. Un análisis de huella para un campo de golf “promedio” en EE.&nbsp;UU. estima aproximadamente <strong>796,6 tCO₂e por año</strong>; por lo tanto, mantenerlo durante <strong>6 meses</strong> equivale a <strong>~398 tCO₂e</strong> (CleanFi, 2021).
+                        </p>
+                        <p class="text-gray-600 mb-4 leading-relaxed">
+                            La referencia “Fin de semana Fútbol PL” se calcula a partir de una estimación agregada de <strong>80.651 tCO₂e</strong> para la temporada 2018/19 de la Premier League (viajes de aficionados, viajes/alojamiento de clubes y energía de estadios), lo que implica ~212 tCO₂e por partido y ~2.120 tCO₂e por jornada típica de 10 partidos (Murray, 2021).
+                        </p>
+                    </div>
+                    <div class="md:w-1/2 flex flex-col justify-center">
+                        <div class="chart-container">
+                            <canvas id="aiChart"></canvas>
+                        </div>
+                        <p class="text-center text-xs text-gray-400 mt-2">Figura 1: Emisiones comparativas (tCO₂e). Fuentes: CleanFi (2021); Murray (2021); Patterson et al. (2021).</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección 2: Redes Sociales -->
+        <section id="social-section" class="mb-20 scroll-mt-20">
+            <div class="section-card p-8 border-l-4 border-blue-400">
+                <div class="flex flex-col md:flex-row-reverse gap-8">
+                    <div class="md:w-1/2">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">El Agregado Digital</h2>
+                        <p class="text-gray-600 mb-4 leading-relaxed">
+                            Aquí comparamos <strong>1 hora</strong> de uso activo continuo. Las consultas de IA son intensivas en energía por unidad, pero el ancho de banda de video de las redes sociales crea una huella agregada masiva.
+                        </p>
+                        <ul class="space-y-3 mb-4 text-gray-600">
+                            <li class="flex items-start">
+                                <span class="mr-2 text-blue-500 font-bold">•</span>
+                                <span><strong>Interacción IA (1 Hora):</strong> ~30 consultas suman ~90g CO₂e (≈3 gCO₂e/consulta; estimación alta) (Ritchie, 2025).</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="mr-2 text-blue-500 font-bold">•</span>
+                                <span><strong>TikTok (1 Hora):</strong> ~158g CO₂e (≈2.63 gCO₂e/min) (Compare the Market, n.d.; The Independent, 2024).</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="mr-2 text-blue-500 font-bold">•</span>
+                                <span><strong>Netflix (1 Hora):</strong> ~56g CO₂e por hora de streaming (promedio europeo citado por Carbon Trust) (Carbon Brief, 2020; The Guardian, 2021).</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="md:w-1/2 flex flex-col justify-center">
+                        <div class="chart-container">
+                            <canvas id="socialChart"></canvas>
+                        </div>
+                        <p class="text-center text-xs text-gray-400 mt-2">Figura 2: Impacto aproximado de CO₂e de 1 hora de actividad (gCO₂e). Valores orientativos sensibles a dispositivo, resolución, red y mix eléctrico (International Energy Agency, 2020). TikTok se estima a partir de 2.63 gCO₂e/min (Compare the Market, n.d.; The Independent, 2024). Netflix se aproxima con 55–56 gCO₂e/h (Carbon Brief, 2020; The Guardian, 2021). Interacción IA asume 3 gCO₂e/consulta (extremo alto) y 30 consultas/h (Ritchie, 2025).</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección 4: Calculadora Interactiva AVANZADA -->
+        <section id="calculator-section" class="mb-20 scroll-mt-20">
+            <div class="bg-slate-800 text-white rounded-lg shadow-xl overflow-hidden">
+                
+                <!-- Cabecera Calculadora & Toggle Métrica -->
+                <div class="p-8 border-b border-slate-700 bg-slate-900 flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div>
+                        <h2 class="text-3xl font-serif mb-2">Calculadora de Huella Diaria</h2>
+                        <p class="text-slate-400">
+                            Compara tus hábitos diarios. Cambia la métrica para ver costes ocultos.
+                        </p>
+                    </div>
+                    
+                    <!-- Interruptor Toggle -->
+                    <div class="flex bg-slate-800 rounded-lg p-1 border border-slate-600">
+                        <button onclick="setMetric('carbon')" id="btn-carbon" class="toggle-btn active px-4 py-2 rounded-md text-sm font-bold transition-colors">
+                            Carbono (CO₂e)
+                        </button>
+                        <button onclick="setMetric('water')" id="btn-water" class="toggle-btn px-4 py-2 rounded-md text-sm font-bold transition-colors text-slate-400 hover:text-white">
+                            Agua (Litros)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-6 lg:p-8">
+                    <div class="flex flex-col lg:flex-row gap-8">
+                        
+                        <!-- COLUMNA ENTRADAS -->
+                        <div class="lg:w-1/2 space-y-8">
+                            <!-- Digital -->
+                            <div class="bg-slate-700/50 p-5 rounded-lg border border-slate-600">
+                                <h3 class="text-blue-300 font-bold mb-4 flex items-center"><span class="text-xl mr-2">💻</span> Hábitos Digitales (Diario)</h3>
+                                <div class="space-y-5">
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-1"><label>Uso de IA (Consultas)</label><span class="font-mono text-blue-200"><span id="val_ai">20</span> consultas</span></div>
+                                        <input type="range" min="0" max="100" value="20" id="in_ai">
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-1"><label>Streaming de Video</label><span class="font-mono text-blue-200"><span id="val_stream">2</span> horas</span></div>
+                                        <input type="range" min="0" max="12" value="2" id="in_stream">
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-1"><label>Videollamadas</label><span class="font-mono text-blue-200"><span id="val_call">1</span> horas</span></div>
+                                        <input type="range" min="0" max="8" value="1" id="in_call">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Estilo de Vida -->
+                            <div class="bg-slate-700/50 p-5 rounded-lg border border-slate-600">
+                                <h3 class="text-orange-300 font-bold mb-4 flex items-center"><span class="text-xl mr-2">🏠</span> Hogar y Estilo de Vida (Diario)</h3>
+                                <div class="space-y-5">
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-1"><label>Comidas con Carne</label><span class="font-mono text-orange-200"><span id="val_meat">1</span> comidas</span></div>
+                                        <input type="range" min="0" max="3" value="1" id="in_meat">
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-1"><label>Duración Ducha</label><span class="font-mono text-orange-200"><span id="val_shower">10</span> mins</span></div>
+                                        <input type="range" min="0" max="30" value="10" id="in_shower">
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-1"><label>Ciclos de Lavado</label><span class="font-mono text-orange-200"><span id="val_laundry">0.5</span> prom/día</span></div>
+                                        <input type="range" min="0" max="3" step="0.5" value="0.5" id="in_laundry">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Ocio -->
+                            <div class="bg-slate-700/50 p-5 rounded-lg border border-slate-600">
+                                <h3 class="text-emerald-300 font-bold mb-4 flex items-center"><span class="text-xl mr-2">⛳</span> Ocio (Amortizado Diario)</h3>
+                                <p class="text-xs text-slate-400 mb-4 italic">*Introduce frecuencia mensual. Calculamos la parte diaria.</p>
+                                <div class="space-y-5">
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-1"><label>Viaje en Coche (Millas)</label><span class="font-mono text-emerald-200"><span id="val_car">15</span> millas</span></div>
+                                        <input type="range" min="0" max="100" value="15" id="in_car">
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-1"><label>Rondas de Golf (Al Mes)</label><span class="font-mono text-emerald-200"><span id="val_golf">0</span> rondas</span></div>
+                                        <input type="range" min="0" max="10" value="0" id="in_golf">
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-1"><label>Partidos Estadio (Al Mes)</label><span class="font-mono text-emerald-200"><span id="val_stadium">0</span> partidos</span></div>
+                                        <input type="range" min="0" max="5" value="0" id="in_stadium">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- COLUMNA RESULTADOS -->
+                        <div class="lg:w-1/2 flex flex-col">
+                            <div class="bg-slate-900 rounded-lg p-6 flex-grow border border-slate-700">
+                                <div class="flex justify-between items-end mb-6">
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-100">Desglose Diario</h3>
+                                        <p class="text-xs text-slate-400 mt-1" id="metric-subtitle">Mostrando Emisiones de Carbono</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs text-slate-400 uppercase tracking-widest" id="total-label">Total Diario CO₂e</span>
+                                        <div class="text-3xl font-bold text-white"><span id="total_display">0</span> <span class="text-base font-normal text-slate-400" id="unit-label">g</span></div>
+                                    </div>
+                                </div>
+                                <div class="chart-container bg-slate-800/50 rounded-lg p-2">
+                                    <canvas id="calculatorChart"></canvas>
+                                </div>
+                                <div class="mt-6 p-4 bg-slate-800 rounded border-l-4" id="analysis-box">
+                                    <p class="text-sm text-slate-300 italic" id="calc_analysis">
+                                        Modifica los controles para comparar la IA con tus hábitos físicos.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN METODOLOGÍA -->
+        <section id="methodology-section" class="mb-20 scroll-mt-20">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+                <div class="p-8 border-b border-gray-100 bg-gray-50">
+                    <h2 class="text-2xl font-serif text-gray-800 mb-2">Metodología y Fuentes de Datos</h2>
+                    <p class="text-gray-600 text-sm">
+                        Esta sección lista explícitamente las constantes usadas en la calculadora y las referencias científicas que las validan.
+                    </p>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full method-table">
+                        <thead>
+                            <tr>
+                                <th class="w-1/6">Actividad</th>
+                                <th class="w-1/6">Factor Carbono</th>
+                                <th class="w-2/6">Justificación Carbono</th>
+                                <th class="w-1/6">Factor Agua</th>
+                                <th class="w-2/6">Justificación Agua</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            <!-- Digital -->
+                            <tr>
+                                <td class="font-bold text-blue-600">Consulta IA (Prom)</td>
+                                <td class="font-mono text-xs">3g / consulta</td>
+                                <td>Estimación conservadora (extremo alto) de ~2–3 gCO₂e por consulta incluyendo amortización del entrenamiento (Ritchie, 2025; Tomlinson et al., 2024). Las estimaciones varían entre 0.4–4.3g según modelo, longitud de respuesta y fuente de energía del datacenter.</td>
+                                <td class="font-mono text-xs">5ml / consulta</td>
+                                <td>Estimación actualizada del consumo de agua para refrigeración basada en análisis recientes de <em>Li et al. (2023)</em>. La cifra original de ~500ml/20-50 consultas ha sido refinada a ~5ml por consulta como valor medio más probable.</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold text-blue-600">Streaming (HD)</td>
+                                <td class="font-mono text-xs">56g / hora</td>
+                                <td>Promedio europeo según Carbon Trust (2021) y Netflix/DIMPACT. La IEA estima ~36g/hora como promedio global (actualizado 2020). Se usa 56g como referencia europea conservadora, reconociendo variación por dispositivo, red y mix eléctrico regional.</td>
+                                <td class="font-mono text-xs">2 L / hora</td>
+                                <td>Estimación conservadora del consumo hídrico asociado a la electricidad que soporta el streaming (refrigeración/evaporación en centros de datos y redes). La literatura reporta rangos amplios (~2–12 L de agua por hora de streaming/videoconferencia, según resolución, red y mezcla eléctrica); aquí se usa el extremo bajo (2 L/h) para evitar sobreestimación (Obringer et al., 2021; Purdue University, 2021).</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold text-blue-600">Videollamada</td>
+                                <td class="font-mono text-xs">150g / hora</td>
+                                <td>Basado en <em>Estudio Universidad Purdue (2021)</em> analizando intensidad de datos simétricos comparado con streaming.</td>
+                                <td class="font-mono text-xs">2 L / hora</td>
+                                <td>Estimación conservadora basada en estudios que cuantifican huellas de carbono/agua por hora de videoconferencia. Los rangos dependen fuertemente de si la cámara está encendida, la resolución y el dispositivo; se usa 2 L/h como mínimo reportado para evitar sobreestimar (Obringer et al., 2021; Purdue University, 2021).</td>
+                            </tr>
+                            
+                            <!-- Estilo de Vida -->
+                            <tr>
+                                <td class="font-bold text-orange-600">Comida (Carne)</td>
+                                <td class="font-mono text-xs">9,000g / comida</td>
+                                <td>Basado en <em>Poore & Nemecek (2018)</em>. Producir 1 kg de carne de res emite ~60 kgCO₂e en promedio global. Para una porción de ~150g, esto equivale a ~9,000g CO₂e.</td>
+                                <td class="font-mono text-xs">2,200 L / comida</td>
+                                <td>Basado en <em>Water Footprint Network</em>. Incluye "Agua Virtual" (Verde+Azul+Gris) requerida para criar ganado/alimento.</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold text-orange-600">Ducha</td>
+                                <td class="font-mono text-xs">30g / min</td>
+                                <td>Supuesto de ducha eléctrica de ~10 kW: ~1 kWh cada 6 minutos (≈0,167 kWh/min). Se convierte a CO₂e usando el factor oficial de electricidad de red del Reino Unido (0,177 kgCO₂e/kWh; conversión 2025). Esto da ≈0,0295 kg/min ≈ 30 g/min (Viessmann, 2022; DESNZ, 2025).</td>
+                                <td class="font-mono text-xs">9 L / min</td>
+                                <td>Consumo directo aproximado de una ducha eficiente (en el rango típico de 5–8 L/min para duchas eléctricas/mains-fed; se usa 9 L/min como referencia prudente y redondeada). Equivale a ~90 L en 10 minutos (CCW, n.d.; Waterwise, 2007).</td>
+                            </tr>
+                            
+                            <!-- Ocio -->
+                            <tr>
+                                <td class="font-bold text-emerald-600">Viaje Coche</td>
+                                <td class="font-mono text-xs">404g / milla</td>
+                                <td>Basado en promedio <em>EPA (2023)</em> para un vehículo de pasajeros típico a gasolina.</td>
+                                <td class="font-mono text-xs">5 L / día</td>
+                                <td>Uso indirecto para procesamiento de combustible y manufactura amortizado diariamente (Fuente: <em>Argonne National Lab</em>).</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold text-emerald-600">Golf (1 Ronda)</td>
+                                <td class="font-mono text-xs">9,000g / ronda</td>
+                                <td>Derivado de <em>Turtureanu et al.</em> analizando equipo de mantenimiento, fertilizantes y transporte de jugadores.</td>
+                                <td class="font-mono text-xs">7,800 L / ronda</td>
+                                <td>Basado en datos <em>USGA</em>. Campo promedio usa 300k-1M galones/día. Cifra representa cuota por jugador asumiendo 150 jugadores/día.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Referencias -->
+        <section id="references-section" class="mb-10 pt-10 border-t border-gray-300">
+            <h2 class="text-2xl font-serif text-gray-800 mb-6">Bibliografía</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600">
+                <ul class="space-y-4">
+
+                    <li><strong>Consumer Council for Water (CCW). (n.d.).</strong> <em>How much water do you use?</em></li>
+                    <li><strong>Department for Energy Security and Net Zero (DESNZ). (2025).</strong> <em>Greenhouse gas reporting: conversion factors 2025</em> (incluye “Conversion factors 2025 — condensed set”).</li>
+                    <li><strong>Obringer, R., Rachunok, B., Maia-Silva, D., Arbabzadeh, M., Nateghi, R., & Madani, K. (2021).</strong> The overlooked environmental footprint of increasing Internet use. <em>Resources, Conservation and Recycling, 167</em>, 105389.</li>
+                    <li><strong>Purdue University. (2021, January 14).</strong> <em>Turn off that camera during virtual meetings, environmental study says.</em></li>
+                    <li><strong>Waterwise. (2007).</strong> <em>Evidence base for large-scale water efficiency in homes.</em></li>
+                    <li><strong>Viessmann. (2022, May 31).</strong> <em>Which appliances use the most electricity at home?</em></li>
+
+                    <li><strong>Carbon Trust. (2021).</strong> <em>Carbon impact of video streaming.</em> White paper.</li>
+                    <li><strong>FIFA. (2022).</strong> <em>FIFA World Cup Qatar 2022: Greenhouse gas accounting report.</em></li>
+                    <li><strong>International Energy Agency. (2020).</strong> <em>The carbon footprint of streaming video: Fact-checking the headlines.</em> IEA.</li>
+                    <li><strong>Li, P., Yang, J., Islam, M. A., & Ren, S. (2023).</strong> <em>Making AI Less "Thirsty": Uncovering and Addressing the Secret Water Footprint of AI Models.</em> arXiv preprint arXiv:2304.03271.</li>
+                
+                    <li><strong>Carbon Brief. (2020).</strong> <em>Factcheck: What is the carbon footprint of streaming video on Netflix?</em> Carbon Brief.</li>
+                    <li><strong>The Guardian. (2021, October 29).</strong> <em>Streaming’s dirty secret: How viewing Netflix creates vast quantities of CO₂.</em> The Guardian.</li>
+                    <li><strong>Compare the Market. (n.d.).</strong> <em>Social carbon footprint calculator.</em> comparethemarket.com.au.</li>
+                    <li><strong>The Independent. (2024, October 29).</strong> <em>Every email, TikTok and text we send is killing the planet — so what can we do about it?</em> The Independent.</li>
+                    <li><strong>Ritchie, H. (2025).</strong> <em>What’s the carbon footprint of using ChatGPT?</em> Substack / Our World in Data.</li>
+                    <li><strong>Tomlinson, B., et al. (2024).</strong> The carbon emissions of writing and illustrating are lower for AI than for humans. <em>Scientific Reports, 14</em>, 3732.</li></ul>
+                <ul class="space-y-4">
+                    <li><strong>CleanFi. (2021).</strong> <em>Carbon footprint of an average U.S. golf course.</em> Informe.</li>
+                    <li><strong>Murray, A. (2021).</strong> <em>An estimation of emissions from the English Premier League.</em> University of Strathclyde (tesis/informe).</li>
+                    <li><strong>Patterson, D., et al. (2021).</strong> <em>Carbon emissions and large neural network training.</em> arXiv preprint arXiv:2104.10350.</li>
+                    <li><strong>Poore, J., & Nemecek, T. (2018).</strong> <em>Reducing food’s environmental impacts through producers and consumers.</em> Science, 360(6392).</li>
+                    <li><strong>USGA. (n.d.).</strong> <em>Water Resource Management.</em> United States Golf Association.</li>
+                    <li><strong>Water Footprint Network.</strong> <em>Product Water Footprints: Beef.</em></li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-gray-400 py-8 text-center text-sm">
+        <p>&copy; Ecological Scale by The H4rmnony Project. (c) Neovalle Ltd.</p>
+    </footer>
+
+    <script>
+        // --- Lógica Navegación ---
+        function navigateTo(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (!mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+        }
+
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        // --- Constantes (Factores) ---
+        
+        // FACTORES CARBONO (g CO2e)
+        const C_FACTORS = {
+            ai: 3,
+            stream: 56,        
+            call: 150,         
+            meat: 9000,        // Corregido: Poore & Nemecek (2018) ~60 kgCO2e/kg × 0.15kg = 9000g
+            shower: 30,       
+            laundry: 600,      
+            car: 404,          
+            golf: 9000,        
+            stadium: 15000     
+        };
+
+        // FACTORES AGUA (Litros - Directo + Indirecto/Virtual)
+        const W_FACTORS = {
+            ai: 0.005,         // Corregido: ~5ml por consulta (análisis actualizados sugieren 5ml como valor medio)
+            stream: 2,
+            call: 2,        
+            meat: 2200,        
+            shower: 9,        
+            laundry: 50,       
+            car: 5,            
+            golf: 7800,        
+            stadium: 100       
+        };
+
+        // --- Inicialización Gráficos (Estáticos) ---
+
+        // 1. Gráfico Entrenamiento IA
+        const ctxAI = document.getElementById('aiChart').getContext('2d');
+        new Chart(ctxAI, {
+            type: 'bar',
+            data: {
+                labels: ['1 Campo Golf (Mant. 6 Meses)', 'Entrenar GPT-3 (Una vez)', 'Jornada típica Fútbol PL (10 partidos)'],
+                datasets: [{
+                    label: 'Emisiones (tCO₂e)',
+                    data: [398, 552, 2120],
+                    backgroundColor: ['#48BB78', '#E07A5F', '#2F855A'],
+                    borderWidth: 0,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#EDF2F7' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 2. Redes Sociales por Hora
+        const ctxSocial = document.getElementById('socialChart').getContext('2d');
+        new Chart(ctxSocial, {
+            type: 'doughnut',
+            data: {
+                labels: ['TikTok (1hr)', 'Netflix (1hr)', '1 Hora IA (30 Consultas)'],
+                datasets: [{
+                    data: [158, 56, 90],
+                    backgroundColor: ['#3B82F6', '#EF4444', '#F59E0B'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+
+        // --- LÓGICA CALCULADORA AVANZADA ---
+
+        let currentMetric = 'carbon'; // 'carbon' or 'water'
+
+        // Inputs
+        const inputs = {
+            ai: document.getElementById('in_ai'),
+            stream: document.getElementById('in_stream'),
+            call: document.getElementById('in_call'),
+            meat: document.getElementById('in_meat'),
+            shower: document.getElementById('in_shower'),
+            laundry: document.getElementById('in_laundry'),
+            car: document.getElementById('in_car'),
+            golf: document.getElementById('in_golf'),
+            stadium: document.getElementById('in_stadium')
+        };
+
+        // Displays de Valor
+        const displays = {
+            ai: document.getElementById('val_ai'),
+            stream: document.getElementById('val_stream'),
+            call: document.getElementById('val_call'),
+            meat: document.getElementById('val_meat'),
+            shower: document.getElementById('val_shower'),
+            laundry: document.getElementById('val_laundry'),
+            car: document.getElementById('val_car'),
+            golf: document.getElementById('val_golf'),
+            stadium: document.getElementById('val_stadium')
+        };
+
+        const totalDisplay = document.getElementById('total_display');
+        const unitLabel = document.getElementById('unit-label');
+        const totalLabel = document.getElementById('total-label');
+        const analysisDisplay = document.getElementById('calc_analysis');
+        const analysisBox = document.getElementById('analysis-box');
+        const subtitle = document.getElementById('metric-subtitle');
+
+        // Gráfico Dinámico
+        const ctxCalc = document.getElementById('calculatorChart').getContext('2d');
+
+        // Formateador para tooltips: evita que valores < 1 se redondeen a 0 (p.ej., 0.01)
+        function formatTooltipValue(x) {
+            const n = Number(x);
+            if (!Number.isFinite(n)) return String(x);
+
+            const abs = Math.abs(n);
+            // Regla simple por magnitud: más decimales para valores pequeños
+            let minFD = 0;
+            let maxFD = 0;
+            if (abs > 0 && abs < 1) {
+                minFD = 2; maxFD = 2;           // 0.01, 0.50, etc.
+            } else if (abs < 10) {
+                minFD = 1; maxFD = 1;           // 1.0–9.9
+            } else {
+                minFD = 0; maxFD = 0;           // >= 10
+            }
+
+            return n.toLocaleString(undefined, {
+                minimumFractionDigits: minFD,
+                maximumFractionDigits: maxFD
+            });
+        }
+        const calculatorChart = new Chart(ctxCalc, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Impacto',
+                    data: [],
+                    backgroundColor: [],
+                    borderRadius: 4,
+                    barPercentage: 0.7
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { 
+                        beginAtZero: true, 
+                        grid: { color: '#334155' }, 
+                        ticks: { color: '#94A3B8' } 
+                    },
+                    y: { 
+                        grid: { display: false }, 
+                        ticks: { color: '#E2E8F0', font: { weight: 'bold' } } 
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${formatTooltipValue(ctx.raw)} ${currentMetric === 'carbon' ? 'g CO₂e' : 'Litros'}`
+                        }
+                    }
+                },
+                animation: { duration: 400 }
+            }
+        });
+
+        function setMetric(metric) {
+            currentMetric = metric;
+            
+            // Actualización UI
+            const btnC = document.getElementById('btn-carbon');
+            const btnW = document.getElementById('btn-water');
+            
+            if (metric === 'carbon') {
+                btnC.classList.add('active');
+                btnC.classList.remove('text-slate-400');
+                btnW.classList.remove('water-active');
+                btnW.classList.add('text-slate-400');
+                
+                unitLabel.innerText = "g";
+                totalLabel.innerText = "Total Diario CO₂e";
+                subtitle.innerText = "Mostrando Emisiones de Carbono";
+                analysisBox.className = "mt-6 p-4 bg-slate-800 rounded border-l-4 border-emerald-500";
+            } else {
+                btnW.classList.add('water-active');
+                btnW.classList.remove('text-slate-400');
+                btnC.classList.remove('active');
+                btnC.classList.add('text-slate-400');
+                
+                unitLabel.innerText = "L";
+                totalLabel.innerText = "Total Diario Agua";
+                subtitle.innerText = "Mostrando Consumo de Agua (Directo + Virtual)";
+                analysisBox.className = "mt-6 p-4 bg-slate-800 rounded border-l-4 border-blue-500";
+            }
+            
+            calculateAndRender();
+        }
+
+        function calculateAndRender() {
+            // 1. Recoger valores
+            const val = {
+                ai: parseInt(inputs.ai.value),
+                stream: parseFloat(inputs.stream.value),
+                call: parseFloat(inputs.call.value),
+                meat: parseInt(inputs.meat.value),
+                shower: parseInt(inputs.shower.value),
+                laundry: parseFloat(inputs.laundry.value),
+                car: parseInt(inputs.car.value),
+                golf: parseInt(inputs.golf.value),
+                stadium: parseInt(inputs.stadium.value)
+            };
+
+            // 2. Actualizar textos display
+            for (let k in val) {
+                displays[k].innerText = val[k];
+            }
+
+            // 3. Seleccionar Factores y Colores
+            const isCarbon = currentMetric === 'carbon';
+            const factors = isCarbon ? C_FACTORS : W_FACTORS;
+            
+            const getCol = (type) => {
+                if (isCarbon) {
+                    if (type === 'tech') return '#F59E0B'; // Amber
+                    if (type === 'home') return '#EF4444'; // Red
+                    if (type === 'leisure') return '#10B981'; // Green
+                } else {
+                    if (type === 'tech') return '#93C5FD'; // Light Blue
+                    if (type === 'home') return '#3B82F6'; // Blue
+                    if (type === 'leisure') return '#1E40AF'; // Dark Blue
+                }
+            };
+
+            // 4. Calcular Impactos (Diarios)
+            const impacts = [
+                { label: 'Uso IA', val: val.ai * factors.ai, color: getCol('tech') },
+                { label: 'Streaming', val: val.stream * factors.stream, color: getCol('tech') },
+                { label: 'Videollamada', val: val.call * factors.call, color: getCol('tech') },
+                { label: 'Comida Carne', val: val.meat * factors.meat, color: getCol('home') },
+                { label: 'Ducha', val: val.shower * factors.shower, color: getCol('home') },
+                { label: 'Lavandería', val: val.laundry * factors.laundry, color: getCol('home') },
+                { label: 'Coche', val: val.car * factors.car, color: getCol('leisure') },
+                { label: 'Golf (Amortizado)', val: (val.golf * factors.golf) / 30, color: getCol('leisure') },
+                { label: 'Estadio (Amortizado)', val: (val.stadium * factors.stadium) / 30, color: getCol('leisure') }
+            ];
+
+            // 5. Calcular Total
+            const total = impacts.reduce((sum, item) => sum + item.val, 0);
+            totalDisplay.innerText = Math.round(total).toLocaleString();
+
+            // 6. Ordenar (Mayor impacto arriba)
+            impacts.sort((a, b) => b.val - a.val);
+
+            // 7. Actualizar Datos Gráfico
+            calculatorChart.data.labels = impacts.map(i => i.label);
+            calculatorChart.data.datasets[0].data = impacts.map(i => i.val);
+            calculatorChart.data.datasets[0].backgroundColor = impacts.map(i => i.color);
+            calculatorChart.update();
+
+            // 8. Texto de Análisis Dinámico
+            const topItem = impacts[0];
+            const aiItem = impacts.find(i => i.label === 'Uso IA');
+            
+            let commentary = "";
+            
+            if (aiItem.val === 0 && total === 0) {
+                commentary = "Ajusta los controles para ver tu huella.";
+            } else if (topItem.label === 'Uso IA') {
+                commentary = "Sorprendentemente, tu alto volumen de <strong>Uso de IA</strong> es tu principal impulsor hoy. ¡Esto es raro!";
+            } else {
+                const ratio = (topItem.val / (aiItem.val || 1)).toFixed(1);
+                
+                if (isCarbon) {
+                    commentary = `Tus hábitos de <strong>${topItem.label}</strong> generan aproximadamente <strong>${ratio}x</strong> más carbono que tu uso de IA hoy.`;
+                } else {
+                    commentary = `<strong>Contexto de Agua:</strong> Tu huella de <strong>${topItem.label}</strong> es <strong>${ratio}x</strong> mayor que el agua de refrigeración de la IA. <br>El uso de agua digital suele ser insignificante comparado con el "Agua Virtual" en alimentos y ocio.`;
+                }
+            }
+            analysisDisplay.innerHTML = commentary;
+        }
+
+        // Event Listeners
+        Object.values(inputs).forEach(input => {
+            input.addEventListener('input', calculateAndRender);
+        });
+
+        // Ejecución Inicial
+        calculateAndRender();
+
+    </script>
+</body>
+</html>
